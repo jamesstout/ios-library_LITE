@@ -26,7 +26,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #import "UAGlobal.h"
 #import "UAObservable.h"
 
-@class UAAnalytics;
 @class UA_ASIHTTPRequest;
 
 UA_VERSION_INTERFACE(AirshipVersion)
@@ -45,11 +44,7 @@ extern NSString * const UAirshipTakeOffOptionsAirshipConfigKey;
  */
 extern NSString * const UAirshipTakeOffOptionsLaunchOptionsKey;
 
-/**
- * The takeOff options key for setting custom analytics options. The value must be
- * an NSDictionary with keys for UAAnalytics. This value is typically not used.
- */
-extern NSString * const UAirshipTakeOffOptionsAnalyticsKey;
+
 
 /**
  * The takeOff options key for setting a pre-exising UAUAser username. The value must be
@@ -91,11 +86,7 @@ extern NSString * const UAirshipTakeOffBackgroundThreadException;
  */
 @property (nonatomic, readonly) NSString *deviceToken;
 
-/**
- * The shared analytics manager. There are not currently any user-defined events,
- * so this is for internal library use only at this time.
- */
-@property (nonatomic, retain) UAAnalytics *analytics;
+
 
 /**
  * The Urban Airship API server. Defaults to https://device-api.urbanairship.com.

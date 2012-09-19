@@ -55,7 +55,6 @@ BOOL logging = false;
 @synthesize appSecret;
 @synthesize deviceTokenHasChanged;
 @synthesize ready;
-@synthesize analytics;
 
 #pragma mark -
 #pragma mark Logging
@@ -71,9 +70,7 @@ BOOL logging = false;
     RELEASE_SAFELY(appId);
     RELEASE_SAFELY(appSecret);
     RELEASE_SAFELY(server);
-    // Analytics contains an NSTimer, and the invalidate method is required
     // before dealloc
-    [analytics invalidate];
     [super dealloc];
 }
 
@@ -231,7 +228,6 @@ BOOL logging = false;
     
     _sharedAirship.ready = true;
     
-    //Send Startup Analytics Info
     //init first event
     
     //Handle custom options
