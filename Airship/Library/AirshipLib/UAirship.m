@@ -100,8 +100,8 @@ BOOL logging = false;
     //Application launch options
     //NSDictionary *launchOptions = [options objectForKey:UAirshipTakeOffOptionsLaunchOptionsKey];
     
-
-    
+    // I don't want any UA requests to set the network activity indicator
+    [UA_ASIHTTPRequest setShouldUpdateNetworkActivityIndicator:NO];
     
     
     // Load configuration
