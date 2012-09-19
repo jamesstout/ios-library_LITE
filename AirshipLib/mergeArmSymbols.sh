@@ -32,7 +32,7 @@ SDK_VERSION=$(echo ${SDK_NAME} | grep -o '.\{3\}$')
 if [ ${PLATFORM_NAME} = "iphonesimulator" ]
 then
 OTHER_SDK_TO_BUILD=iphoneos${SDK_VERSION}
-ARCH_TO_BUILD="armv6 armv7"
+ARCH_TO_BUILD="armv7s armv7"
 else
 OTHER_SDK_TO_BUILD=iphonesimulator${SDK_VERSION}
 ARCH_TO_BUILD="i386"
