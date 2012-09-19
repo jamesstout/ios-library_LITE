@@ -71,8 +71,7 @@ UAPushJSONKey *const UAPushBadgeJSONKey = @"badge";
 @property (nonatomic, assign) NSUserDefaults *standardUserDefaults;
 @property (nonatomic, assign) UIRemoteNotificationType notificationTypes;
 
-/* Default push handler. */
-@property (nonatomic, retain) NSObject <UAPushNotificationDelegate> *defaultPushHandler;
+
 
 /* Sets the device token string */
 - (void)setDeviceToken:(NSString*)deviceToken;
@@ -155,12 +154,12 @@ UAPushJSONKey *const UAPushBadgeJSONKey = @"badge";
 
 /* Called on foreground notifications, triggers an updateRegistration
  */
-- (void)applicationDidBecomeActive;
+//- (void)applicationDidBecomeActive;
 
 /* Called to set a flag on foreground to prevent double registration on 
  * app init
  */
-- (void)applicationDidEnterBackground;
+//- (void)applicationDidEnterBackground;
 
 /* Register the user defaults for this class. You should not need to call this method
  unless you are bypassing UAirship
