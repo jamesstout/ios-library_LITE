@@ -82,19 +82,9 @@
     return [jsonData length];
 }
 
-- (void)addDataWithValue:(id)value forKey:(NSString*)key {
-    if (value && key) {
-        [data setObject:value forKey:key];
-    }
-}
 
-- (void)addDataFromSessionWithKey:(NSString*)sessionKey forKey:(NSString*)dataKey {
-   // [self addDataWithValue:[[UAirship shared].analytics.session objectForKey:sessionKey] forKey:dataKey];
-}
 
-- (void)addDataFromSessionForKey:(NSString*)dataKey {
-    [self addDataFromSessionWithKey:dataKey forKey:dataKey];
-}
+
 
 - (void)gatherIndividualData:(NSDictionary*)context{}
 
@@ -170,21 +160,7 @@
 }
 
 - (void)gatherIndividualData:(NSDictionary*)context {
-    [self addDataWithValue:[UAUser defaultUser].username forKey:@"user_id"];
-    [self addDataFromSessionForKey:@"connection_type"];
-    [self addDataFromSessionWithKey:@"launched_from_push_id" forKey:@"push_id"];
-    [self addDataFromSessionWithKey:@"launched_from_rich_push_id" forKey:@"rich_push_id"];
-    [self addDataFromSessionForKey:@"foreground"];
-    
 
-    [self addDataFromSessionForKey:@"time_zone"];
-    [self addDataFromSessionForKey:@"daylight_savings"];
-    [self addDataFromSessionForKey:@"notification_types"];
-    
-    // Component Versions
-    [self addDataFromSessionForKey:@"os_version"];
-    [self addDataFromSessionForKey:@"lib_version"];
-    [self addDataFromSessionForKey:@"package_version"];
     
 }
 
@@ -215,9 +191,6 @@
 }
 
 - (void)gatherIndividualData:(NSDictionary*)context {
-    [self addDataFromSessionForKey:@"connection_type"];
-    [self addDataFromSessionWithKey:@"launched_from_push_id" forKey:@"push_id"];
-    [self addDataFromSessionWithKey:@"launched_from_rich_push_id" forKey:@"rich_push_id"];
 }
 
 - (int)getEstimatedSize {
@@ -273,8 +246,7 @@
 }
 
 - (void)gatherIndividualData:(NSDictionary*)context {
-    [self addDataWithValue:[UAirship shared].deviceToken forKey:@"device_token"];
-    [self addDataWithValue:[UAUser defaultUser].username forKey:@"user_id"];
+
 }
 
 - (int)getEstimatedSize {
@@ -305,15 +277,12 @@
     
     //Add the rich push id, if present
     if (richPushId) {
-        [self addDataWithValue:richPushId forKey:@"rich_push_id"];
     }
     
     //Add the std push id, if present, else create a UUID
     NSString *pushId = [context objectForKey:@"_"];
     if (pushId) {
-        [self addDataWithValue:pushId forKey:@"push_id"];
     } else {
-        [self addDataWithValue:[UAUtils UUID] forKey:@"push_id"];
     }
 }
 

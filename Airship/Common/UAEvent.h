@@ -47,8 +47,7 @@
 - (NSString *)getType;
 - (void)gatherData:(NSDictionary*)context;
 - (int)getEstimatedSize;
-- (void)addDataFromSessionForKey:(NSString*)dataKey;
-- (void)addDataWithValue:(id)value forKey:(NSString*)key;
+
 @end
 
 @interface UAEventCustom : UAEvent {
