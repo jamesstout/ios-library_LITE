@@ -25,14 +25,10 @@
 
 #import "UAEvent.h"
 #import "UAirship.h"
-#import "UAAnalytics.h"
 #import "UAUser.h"
 #import "UAUtils.h"
 #import "UA_Reachability.h"
 #import "UA_SBJsonWriter.h"
-#import <CoreTelephony/CTTelephonyNetworkInfo.h>
-#import <CoreTelephony/CTCarrier.h>
-
 
 @implementation UAEvent
 
@@ -93,7 +89,7 @@
 }
 
 - (void)addDataFromSessionWithKey:(NSString*)sessionKey forKey:(NSString*)dataKey {
-    [self addDataWithValue:[[UAirship shared].analytics.session objectForKey:sessionKey] forKey:dataKey];
+   // [self addDataWithValue:[[UAirship shared].analytics.session objectForKey:sessionKey] forKey:dataKey];
 }
 
 - (void)addDataFromSessionForKey:(NSString*)dataKey {
@@ -180,14 +176,6 @@
     [self addDataFromSessionWithKey:@"launched_from_rich_push_id" forKey:@"rich_push_id"];
     [self addDataFromSessionForKey:@"foreground"];
     
-    // Capture carrier info if available
-    IF_IOS4_OR_GREATER(
-                       CTTelephonyNetworkInfo *netInfo = [[CTTelephonyNetworkInfo alloc] init];
-                       CTCarrier *carrier = netInfo.subscriberCellularProvider;
-
-                       [self addDataWithValue:carrier.carrierName forKey:@"carrier"];
-                       [netInfo release];
-                       );
 
     [self addDataFromSessionForKey:@"time_zone"];
     [self addDataFromSessionForKey:@"daylight_savings"];
