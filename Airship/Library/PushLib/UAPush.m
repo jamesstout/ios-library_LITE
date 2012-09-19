@@ -186,9 +186,12 @@ SINGLETON_IMPLEMENTATION(UAPush)
         // It is cleared on successful unregistration
 
         if (enabled) {
-            UALOG(@"registering for remote notifcations");
+            UALOG(@"registering for remote notifcations, self.enabled == YES, types = %i", notificationTypes);
             [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
         } else {
+            
+            UALOG(@"registering for remote notifcations, self.enabled == NO, types = %i", UIRemoteNotificationTypeNone);
+
             [standardUserDefaults setBool:YES forKey:UAPushNeedsUnregistering];
             //note: we don't want to use the wrapper method here, because otherwise it will blow away the existing notificationTypes
             [[UIApplication sharedApplication] registerForRemoteNotificationTypes:UIRemoteNotificationTypeNone];
@@ -249,10 +252,22 @@ SINGLETON_IMPLEMENTATION(UAPush)
 #pragma mark -
 #pragma mark APNS wrapper
 - (void)registerForRemoteNotificationTypes:(UIRemoteNotificationType)types {
+    
+    UALOG(@"registering for remote notifcations, types = %i", types);
+
+    
     self.notificationTypes = types;
     
     if (self.pushEnabled) {
+        
+        UALOG(@"registering for remote notifcations, self.pushEnabled == YES, types = %i", notificationTypes);
+
         [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
+    }
+    else{
+        
+        UALOG(@"Doing nothing");
+
     }
 }
 
@@ -487,8 +502,7 @@ SINGLETON_IMPLEMENTATION(UAPush)
         return;
     }
     self.deviceToken = [self parseDeviceToken:[token description]];
-    //UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
-//[[UAirship shared].analytics addEvent:regEvent];
+
     [self updateRegistration];
 }
 
@@ -497,8 +511,6 @@ SINGLETON_IMPLEMENTATION(UAPush)
 - (void)registerDeviceTokenWithExtraInfo:(NSDictionary *)info {
     self.retryOnConnectionError = NO;
     self.isRegistering = YES;
-   // UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
-    //[[UAirship shared].analytics addEvent:regEvent];
     UA_ASIHTTPRequest *putRequest = [self requestToRegisterDeviceTokenWithInfo:info];
     UALOG(@"Starting deprecated registration request");
     [putRequest startAsynchronous];
@@ -568,8 +580,7 @@ SINGLETON_IMPLEMENTATION(UAPush)
     self.retryOnConnectionError = NO;
     self.deviceToken = [self parseDeviceToken:[token description]];
     self.alias = alias;
-    //UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
-    //[[UAirship shared].analytics addEvent:regEvent];
+
     [self updateRegistration];
 }
 
