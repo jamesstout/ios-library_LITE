@@ -29,11 +29,9 @@
 #import "UAPush+Internal.h"
 
 #import "UAirship.h"
-#import "UAViewUtils.h"
 #import "UAUtils.h"
-#import "UAAnalytics.h"
 #import "UAEvent.h"
-#import "UAPushNotificationHandler.h"
+//#import "UAPushNotificationHandler.h"
 
 #import "UA_SBJsonWriter.h"
 #import "UA_ASIHTTPRequest.h"
@@ -49,15 +47,13 @@ UA_VERSION_IMPLEMENTATION(UAPushVersion, UA_VERSION)
 //Internal
 @synthesize registrationQueue;
 @synthesize standardUserDefaults;
-@synthesize defaultPushHandler;
 @synthesize registrationRetryDelay;
 @synthesize registrationPayloadCache;
 @synthesize pushEnabledPayloadCache;
 @synthesize isRegistering;
 @synthesize hasEnteredBackground;
-
 //Public
-@synthesize delegate;
+//@synthesize delegate;
 @synthesize notificationTypes;
 @synthesize autobadgeEnabled = autobadgeEnabled_;
 
@@ -75,14 +71,13 @@ UA_VERSION_IMPLEMENTATION(UAPushVersion, UA_VERSION)
 
 SINGLETON_IMPLEMENTATION(UAPush)
 
-static Class _uiClass;
 
 + (void)initialize {
     [self registerNSUserDefaults];
 }
 
 -(void)dealloc {
-    RELEASE_SAFELY(defaultPushHandler);
+    //RELEASE_SAFELY(defaultPushHandler);
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     dispatch_release(registrationQueue);
     registrationQueue = nil;
@@ -94,18 +89,9 @@ static Class _uiClass;
     if (self) {
         //init with default delegate implementation
         // released when replaced
-        defaultPushHandler = [[NSClassFromString(PUSH_DELEGATE_CLASS) alloc] init];
-        delegate = defaultPushHandler;
+
         standardUserDefaults = [NSUserDefaults standardUserDefaults];
-        [[NSNotificationCenter defaultCenter] addObserver:self 
-                                                 selector:@selector(applicationDidBecomeActive) 
-                                                     name:UIApplicationDidBecomeActiveNotification 
-                                                   object:[UIApplication sharedApplication]];
-        // Only for observing the first call to app background
-        [[NSNotificationCenter defaultCenter] addObserver:self 
-                                              selector:@selector(applicationDidEnterBackground) 
-                                                  name:UIApplicationDidEnterBackgroundNotification 
-                                                object:[UIApplication sharedApplication]];
+
         registrationQueue = dispatch_queue_create("com.urbanairship.registration", DISPATCH_QUEUE_SERIAL);
     }
     return self;
@@ -250,20 +236,11 @@ static Class _uiClass;
 }
 
 
+
 #pragma mark -
 #pragma mark Private methods
 
-- (Class)uiClass {
-    if (!_uiClass) {
-        _uiClass = NSClassFromString(PUSH_UI_CLASS);
-    }
-    
-    if (_uiClass == nil) {
-        UALOG(@"Push UI class not found.");
-    }
-    
-    return _uiClass;
-}
+
 
 - (NSString *)getTagFromUrl:(NSURL *)url {
     return [[url.relativePath componentsSeparatedByString:@"/"] lastObject];
@@ -365,33 +342,6 @@ static Class _uiClass;
     }
 }
 
-#pragma mark -
-#pragma mark Open APIs - Custom UI
-
-+ (void)useCustomUI:(Class)customUIClass {
-    _uiClass = customUIClass;
-}
-
-#pragma mark -
-#pragma mark Open APIs - UI Display
-
-+ (void)openApnsSettings:(UIViewController *)viewController
-                animated:(BOOL)animated {
-    [[[UAPush shared] uiClass] openApnsSettings:viewController animated:animated];
-}
-
-+ (void)openTokenSettings:(UIViewController *)viewController
-                 animated:(BOOL)animated {
-    [[[UAPush shared] uiClass] openTokenSettings:viewController animated:animated];
-}
-
-+ (void)closeApnsSettingsAnimated:(BOOL)animated {
-    [[[UAPush shared] uiClass] closeApnsSettingsAnimated:animated];
-}
-
-+ (void)closeTokenSettingsAnimated:(BOOL)animated {
-    [[[UAPush shared] uiClass] closeTokenSettingsAnimated:animated];
-}
 
 #pragma mark -
 #pragma mark Open APIs - UA Registration Tags APIs
@@ -439,80 +389,7 @@ static Class _uiClass;
     [self setBadgeNumber:0];
 }
 
-- (void)handleNotification:(NSDictionary *)notification applicationState:(UIApplicationState)state {
-    
-    [[UAirship shared].analytics handleNotification:notification];
-        
-    if (state != UIApplicationStateActive) {
-        UALOG(@"Received a notification for an inactive application state.");
-        
-        if ([delegate respondsToSelector:@selector(handleBackgroundNotification:)])
-            [delegate handleBackgroundNotification:notification];
-        return;
-    }
-    
-    // Please refer to the following Apple documentation for full details on handling the userInfo payloads
-	// http://developer.apple.com/library/ios/#documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/ApplePushService/ApplePushService.html#//apple_ref/doc/uid/TP40008194-CH100-SW1
-	
-	if ([[notification allKeys] containsObject:@"aps"]) { 
-		
-        NSDictionary *apsDict = [notification objectForKey:@"aps"];
-        
-		if ([[apsDict allKeys] containsObject:@"alert"]) {
 
-			if ([[apsDict objectForKey:@"alert"] isKindOfClass:[NSString class]] &&
-                [delegate respondsToSelector:@selector(displayNotificationAlert:)]) {
-                
-				// The alert is a single string message so we can display it
-                [delegate displayNotificationAlert:[apsDict valueForKey:@"alert"]];
-
-			} else if ([delegate respondsToSelector:@selector(displayLocalizedNotificationAlert:)]) {
-				// The alert is a a dictionary with more localization details
-				// This should be customized to fit your message details or usage scenario
-                [delegate displayLocalizedNotificationAlert:[apsDict valueForKey:@"alert"]];
-			}
-			
-		}
-        
-        //badge
-        NSString *badgeNumber = [apsDict valueForKey:@"badge"];
-        if (badgeNumber) {
-            
-			if(self.autobadgeEnabled) {
-				[[UIApplication sharedApplication] setApplicationIconBadgeNumber:[badgeNumber intValue]];
-			} else if ([delegate respondsToSelector:@selector(handleBadgeUpdate:)]) {
-				[delegate handleBadgeUpdate:[badgeNumber intValue]];
-			}
-        }
-		
-        //sound
-		NSString *soundName = [apsDict valueForKey:@"sound"];
-		if (soundName && [delegate respondsToSelector:@selector(playNotificationSound:)]) {
-			[delegate playNotificationSound:[apsDict objectForKey:@"sound"]];
-		}
-        
-	}//aps
-    
-	// Now remove all the UA and Apple payload items
-	NSMutableDictionary *customPayload = [[notification mutableCopy] autorelease];
-	
-	if([[customPayload allKeys] containsObject:@"aps"]) {
-		[customPayload removeObjectForKey:@"aps"];
-	}
-	if([[customPayload allKeys] containsObject:@"_uamid"]) {
-		[customPayload removeObjectForKey:@"_uamid"];
-	}
-	if([[customPayload allKeys] containsObject:@"_"]) {
-		[customPayload removeObjectForKey:@"_"];
-	}
-	
-	// If any top level items remain, those are custom payload, pass it to the handler
-	// Note: There is some convenience built into this check, if for some reason there's a key collision
-	//	and we're stripping yours above, it's safe to remove this conditional
-	if([[customPayload allKeys] count] > 0 && [delegate respondsToSelector:@selector(handleNotification:withCustomPayload:)]) {
-		[delegate handleNotification:notification withCustomPayload:customPayload];
-    }
-}
 
 + (NSString *)pushTypeString:(UIRemoteNotificationType)types {
     
@@ -542,26 +419,7 @@ static Class _uiClass;
     return @"None";
 }
 
-#pragma mark -
-#pragma mark UIApplication State Observation
 
-- (void)applicationDidBecomeActive {
-    UALOG(@"Checking registration status after foreground notification");
-    if (hasEnteredBackground) {
-        registrationRetryDelay = 0;
-        [self updateRegistration];
-    }
-    else {
-        UALOG(@"Checking registration on app foreground disabled on app initialization");
-    }
-}
-
-- (void)applicationDidEnterBackground {
-    hasEnteredBackground = YES;
-    [[NSNotificationCenter defaultCenter] removeObserver:self 
-                                                    name:UIApplicationDidEnterBackgroundNotification 
-                                                  object:[UIApplication sharedApplication]];
-}
 
 #pragma mark -
 #pragma mark UA Registration    Methods
@@ -629,8 +487,8 @@ static Class _uiClass;
         return;
     }
     self.deviceToken = [self parseDeviceToken:[token description]];
-    UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
-    [[UAirship shared].analytics addEvent:regEvent];
+    //UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
+//[[UAirship shared].analytics addEvent:regEvent];
     [self updateRegistration];
 }
 
@@ -639,8 +497,8 @@ static Class _uiClass;
 - (void)registerDeviceTokenWithExtraInfo:(NSDictionary *)info {
     self.retryOnConnectionError = NO;
     self.isRegistering = YES;
-    UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
-    [[UAirship shared].analytics addEvent:regEvent];
+   // UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
+    //[[UAirship shared].analytics addEvent:regEvent];
     UA_ASIHTTPRequest *putRequest = [self requestToRegisterDeviceTokenWithInfo:info];
     UALOG(@"Starting deprecated registration request");
     [putRequest startAsynchronous];
@@ -710,8 +568,8 @@ static Class _uiClass;
     self.retryOnConnectionError = NO;
     self.deviceToken = [self parseDeviceToken:[token description]];
     self.alias = alias;
-    UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
-    [[UAirship shared].analytics addEvent:regEvent];
+    //UAEventDeviceRegistration *regEvent = [UAEventDeviceRegistration eventWithContext:nil];
+    //[[UAirship shared].analytics addEvent:regEvent];
     [self updateRegistration];
 }
 

@@ -26,88 +26,11 @@
 #import "UAGlobal.h"
 #import "UAObservable.h"
 
-#define PUSH_UI_CLASS @"UAPushUI"
-#define PUSH_DELEGATE_CLASS @"UAPushNotificationHandler"
 
 @class UA_ASIHTTPRequest;
 
 UA_VERSION_INTERFACE(UAPushVersion)
 
-/**
- * Implement this protocol to provide a custom UI for use with UAPush. The default
- * implementation, UAPushUI, is provided in the library's sample UI distribution.
- */
-@protocol UAPushUIProtocol
-
-/**
- * Open a push settings screen. The default implementation provides settings for toggling push
- * on and off and managing quiet time.
- *
- * @param viewController The parent view controller.
- * @param animated `YES` to animate the display, otherwise `NO`
- */
-+ (void)openApnsSettings:(UIViewController *)viewController
-                animated:(BOOL)animated;
-
-/**
- * Close the push settings screen.
- *
- * @param animated `YES` to animate the view transition, otherwise `NO`
- */
-+ (void)closeApnsSettingsAnimated:(BOOL)animated;
-
-
-/* TODO: remove the following two methods from lib/protocol - it's a demo feature */
-+ (void)openTokenSettings:(UIViewController *)viewController
-                 animated:(BOOL)animated;
-+ (void)closeTokenSettingsAnimated:(BOOL)animated;
-@end
-
-
-/**
- * Protocol to be implemented by push notification clients. All methods are optional.
- */
-@protocol UAPushNotificationDelegate<NSObject>
-
-@optional
-
-/**
- * Called when an alert notification is received.
- * @param alertMessage a simple string to be displayed as an alert
- */
-- (void)displayNotificationAlert:(NSString *)alertMessage;
-
-/**
- * Called when an alert notification is received with additional localization info.
- * @param alertDict a dictionary containing the alert and localization info
- */
-- (void)displayLocalizedNotificationAlert:(NSDictionary *)alertDict;
-
-/**
- * Called when a push notification is received with a sound associated
- * @param sound the sound to play
- */
-- (void)playNotificationSound:(NSString *)sound;
-
-/**
- * Called when a push notification is received with a custom payload
- * @param notification basic information about the notification
- * @param customPayload user-defined custom payload
- */
-- (void)handleNotification:(NSDictionary *)notification withCustomPayload:(NSDictionary *)customPayload;
-
-/**
- * Called when a push notification is received with a badge number
- * @param badgeNumber The badge number to display
- */
-- (void)handleBadgeUpdate:(int)badgeNumber;
-
-/**
- * Called when a push notification is received when the application is in the background
- * @param notification the push notification
- */
-- (void)handleBackgroundNotification:(NSDictionary *)notification;
-@end
 
 /**
  * Implement this protocol and register with the UAirship shared instance to receive
@@ -133,56 +56,7 @@ UA_VERSION_INTERFACE(UAPushVersion)
 
 SINGLETON_INTERFACE(UAPush);
 
-///---------------------------------------------------------------------------------------
-/// @name UAPush UI
-///---------------------------------------------------------------------------------------
 
-
-/**
- * Use a custom UI implementation.
- * Replaces the default push UI, defined in UAPushUI, with
- * a custom implementation.
- *
- * @see UAPushUIProtocol
- * @see UAPushUI
- *
- * @param customUIClass An implementation of UAPushUIProtocol
- */
-+ (void)useCustomUI:(Class)customUIClass;
-
-/**
- * Open the push settings screen. The default implementation provides settings for toggling push
- * on and off and managing quiet time.
- *
- * @param viewController The parent view controller.
- * @param animated `YES` to animate the display, otherwise `NO`
- */
-+ (void)openApnsSettings:(UIViewController *)viewController
-                animated:(BOOL)animated;
-
-/**
- * Close the push settings screen.
- *
- * @param animated `YES` to animate the view transition, otherwise `NO`
- */
-+ (void)closeApnsSettingsAnimated:(BOOL)animated;
-
-/**
- * Open the push token demo screen. The default implementation provides a UI for vieweing and
- * managing device token metadata.
- *
- * @param viewController The parent view controller.
- * @param animated `YES` to animate the display, otherwise `NO`
- */
-+ (void)openTokenSettings:(UIViewController *)viewController
-                 animated:(BOOL)animated;
-
-/**
- * Close the push token demo screen.
- *
- * @param animated `YES` to animate the view transition, otherwise `NO`
- */
-+ (void)closeTokenSettingsAnimated:(BOOL)animated;
 
 ///---------------------------------------------------------------------------------------
 /// @name UAPush
@@ -192,7 +66,7 @@ SINGLETON_INTERFACE(UAPush);
  * Set a delegate that implements the UAPushNotificationDelegate protocol. If not
  * set, a default implementation is provided (UAPushNotificationHandler).
  */
-@property (nonatomic, assign) id<UAPushNotificationDelegate> delegate;
+//@property (nonatomic, assign) id<UAPushNotificationDelegate> delegate;
 
 /** Notification types this app will request from APNS. */
 @property (nonatomic, readonly) UIRemoteNotificationType notificationTypes;
@@ -504,7 +378,7 @@ SINGLETON_INTERFACE(UAPush);
  * @param notification The notification payload, as passed to your application delegate.
  * @param applicationState The application state at the time the notification was received.
  */
-- (void)handleNotification:(NSDictionary *)notification applicationState:(UIApplicationState)state;
+//- (void)handleNotification:(NSDictionary *)notification applicationState:(UIApplicationState)state;
 
 
 ///---------------------------------------------------------------------------------------
