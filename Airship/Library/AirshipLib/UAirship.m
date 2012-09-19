@@ -23,7 +23,6 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#import <CoreLocation/CoreLocation.h>
 #import "UAirship.h"
 #import "UAirship+Internal.h"
 
@@ -31,20 +30,15 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #import "UA_SBJSON.h"
 
 #import "UAUser.h"
-#import "UAAnalytics.h"
 #import "UAEvent.h"
 #import "UAUtils.h"
 #import "UAKeychainUtils.h"
-#import "UALocationCommonValues.h"
-#import "UALocationService.h"
 #import "UAGlobal.h"
 #import "UAPush.h"
 
 UA_VERSION_IMPLEMENTATION(AirshipVersion, UA_VERSION)
-NSString * const UALocationServicePreferences = @"UALocationServicePreferences";
 NSString * const UAirshipTakeOffOptionsAirshipConfigKey = @"UAirshipTakeOffOptionsAirshipConfigKey";
 NSString * const UAirshipTakeOffOptionsLaunchOptionsKey = @"UAirshipTakeOffOptionsLaunchOptionsKey";
-NSString * const UAirshipTakeOffOptionsAnalyticsKey = @"UAirshipTakeOffOptionsAnalyticsKey";
 NSString * const UAirshipTakeOffOptionsDefaultUsernameKey = @"UAirshipTakeOffOptionsDefaultUsernameKey";
 NSString * const UAirshipTakeOffOptionsDefaultPasswordKey = @"UAirshipTakeOffOptionsDefaultPasswordKey";
 
@@ -62,7 +56,6 @@ BOOL logging = false;
 @synthesize deviceTokenHasChanged;
 @synthesize ready;
 @synthesize analytics;
-@synthesize locationService = locationService_;
 
 #pragma mark -
 #pragma mark Logging
@@ -70,15 +63,7 @@ BOOL logging = false;
     logging = value;
 }
 
-#pragma mark -
-#pragma mark Location Get/Set Methods
 
-- (UALocationService*)locationService {
-   if (!locationService_) {
-       locationService_ = [[UALocationService alloc] init];
-   }
-   return locationService_;
-}
 
 #pragma mark -
 #pragma mark Object Lifecycle
@@ -89,8 +74,6 @@ BOOL logging = false;
     // Analytics contains an NSTimer, and the invalidate method is required
     // before dealloc
     [analytics invalidate];
-    RELEASE_SAFELY(analytics);
-    RELEASE_SAFELY(locationService_);
     [super dealloc];
 }
 
@@ -115,15 +98,9 @@ BOOL logging = false;
         return;
     }
     //Application launch options
-    NSDictionary *launchOptions = [options objectForKey:UAirshipTakeOffOptionsLaunchOptionsKey];
+    //NSDictionary *launchOptions = [options objectForKey:UAirshipTakeOffOptionsLaunchOptionsKey];
     
-    //Set up analytics - record when app is opened from a push
-    NSMutableDictionary *analyticsOptions = [options objectForKey:UAirshipTakeOffOptionsAnalyticsKey];
-    if (analyticsOptions == nil) {
-        analyticsOptions = [[[NSMutableDictionary alloc] init] autorelease];
-    }
-    [analyticsOptions setValue:[launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey] 
-                        forKey:UAAnalyticsOptionsRemoteNotificationKey];
+
     
     
     
@@ -184,13 +161,6 @@ BOOL logging = false;
         
         _sharedAirship = [[UAirship alloc] initWithId:configAppKey identifiedBy:configAppSecret];
         _sharedAirship.server = airshipServer;
-        
-        //Add the server to the analytics options, but do not delete if not set as
-        //it may also be set in the options parameters
-        NSString *analyticsServer = [config objectForKey:@"ANALYTICS_SERVER"];
-        if (analyticsServer != nil) {
-            [analyticsOptions setObject:analyticsServer forKey:UAAnalyticsOptionsServerKey];
-        }
         
         
         //For testing, set this value in AirshipConfig to clear out
@@ -260,11 +230,9 @@ BOOL logging = false;
     [_sharedAirship configureUserAgent];
     
     _sharedAirship.ready = true;
-    _sharedAirship.analytics = [[[UAAnalytics alloc] initWithOptions:analyticsOptions] autorelease];
     
     //Send Startup Analytics Info
     //init first event
-    [_sharedAirship.analytics addEvent:[UAEventAppInit eventWithContext:nil]];
     
     //Handle custom options
     if (options != nil) {
@@ -286,13 +254,9 @@ BOOL logging = false;
     [[UA_ASIHTTPRequest sharedQueue] cancelAllOperations];
     
 	// add app_exit event
-    [_sharedAirship.analytics addEvent:[UAEventAppExit eventWithContext:nil]];
 	
     //Land the modular libaries first
     [NSClassFromString(@"UAPush") land];
-    [NSClassFromString(@"UAInbox") land];
-    [NSClassFromString(@"UAStoreFront") land];
-    [NSClassFromString(@"UASubscriptionManager") land];
     
     //Land common classes
     [UAUser land];
