@@ -1,0 +1,15 @@
+-------------------------
+1.3.3 Sep 30, 2012
+-------------------------
+- still need to update version
+- removed unused libs and samples
+- this is just basic register, update, unregister
+- network requests do not update the network activity indicator
+- removed all analytics references, events, carrier info
+- removed anything to do with location, databases, subscriptions, inbox, UI APNS settings etc
+- removed armv6 added armv7s
+- removed push handler (debatable this one, but I already had the code to handle them)
+- removed app state methods/obsevers (just used by the analytics)
+- removed unused files 
+
+
