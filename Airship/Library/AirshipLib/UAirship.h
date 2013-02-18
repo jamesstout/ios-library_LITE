@@ -126,6 +126,9 @@ extern NSString * const UAirshipTakeOffBackgroundThreadException;
 @property (nonatomic, assign) BOOL ready;
 
 
+@property (nonatomic, assign) BOOL inProduction;
+
+
 ///---------------------------------------------------------------------------------------
 /// @name Logging
 ///---------------------------------------------------------------------------------------

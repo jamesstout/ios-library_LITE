@@ -54,7 +54,7 @@ BOOL logging = false;
 @synthesize appId;
 @synthesize appSecret;
 @synthesize deviceTokenHasChanged;
-@synthesize ready;
+@synthesize ready, inProduction;
 
 #pragma mark -
 #pragma mark Logging
@@ -158,6 +158,7 @@ BOOL logging = false;
         
         _sharedAirship = [[UAirship alloc] initWithId:configAppKey identifiedBy:configAppSecret];
         _sharedAirship.server = airshipServer;
+        _sharedAirship.inProduction = inProduction;
         
         
         //For testing, set this value in AirshipConfig to clear out
@@ -250,12 +251,13 @@ BOOL logging = false;
     [[UA_ASIHTTPRequest sharedQueue] cancelAllOperations];
     
 	// add app_exit event
+    //Land common classes
+    [UAUser land];
 	
     //Land the modular libaries first
     [NSClassFromString(@"UAPush") land];
     
-    //Land common classes
-    [UAUser land];
+
     
     //Finally, release the airship!
     [_sharedAirship release];
