@@ -55,14 +55,14 @@
 #import <CoreFoundation/CoreFoundation.h>
 
 #import "UA_Reachability.h"
-
+#import "UAGlobal.h"
 #define kShouldPrintReachabilityFlags 1
 
 static void PrintReachabilityFlags(SCNetworkReachabilityFlags    flags, const char* comment)
 {
 #if kShouldPrintReachabilityFlags
 	
-    NSLog(@"Reachability Flag Status: %c%c %c%c%c%c%c%c%c %s\n",
+    UALOG(@"Reachability Flag Status: %c%c %c%c%c%c%c%c%c %s\n",
 			(flags & kSCNetworkReachabilityFlagsIsWWAN)				  ? 'W' : '-',
 			(flags & kSCNetworkReachabilityFlagsReachable)            ? 'R' : '-',
 			
