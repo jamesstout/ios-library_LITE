@@ -83,6 +83,14 @@ BOOL logging = false;
 }
 
 + (void)takeOff:(NSDictionary *)options {
+
+    
+    //Airships only take off once!
+    if (_sharedAirship) {
+        return;
+    }
+    
+    
     // UAirship needs to be run on the main thread
     if(![[NSThread currentThread] isMainThread]){
         NSException *mainThreadException = [NSException exceptionWithName:UAirshipTakeOffBackgroundThreadException
@@ -90,10 +98,7 @@ BOOL logging = false;
                                                                  userInfo:nil];
         [mainThreadException raise];
     }
-    //Airships only take off once!
-    if (_sharedAirship) {
-        return;
-    }
+
     //Application launch options
     //NSDictionary *launchOptions = [options objectForKey:UAirshipTakeOffOptionsLaunchOptionsKey];
     
@@ -174,17 +179,8 @@ BOOL logging = false;
         }
         
     } else {
-        NSString* okStr = @"OK";
-        NSString* errorMessage = @"The AirshipConfig.plist file is missing.";
-        NSString *errorTitle = @"Error";
-        UIAlertView *someError = [[UIAlertView alloc] initWithTitle:errorTitle
-                                                            message:errorMessage
-                                                           delegate:nil
-                                                  cancelButtonTitle:okStr
-                                                  otherButtonTitles:nil];
-        
-        [someError show];
-        [someError release];
+        UALOG(@"The AirshipConfig.plist file is missing and no application credentials were specified at runtime.");
+
         
         //Use blank credentials to prevent app from crashing while error msg
         //is displayed
@@ -207,20 +203,11 @@ BOOL logging = false;
                     && [matchPred evaluateWithObject:_sharedAirship.appSecret];  
     
     if (!match) {
-        NSString* okStr = @"OK";
-        NSString* errorMessage =
-            @"Application KEY and/or SECRET not set properly, please"
-            " insert your application key from http://go.urbanairship.com into"
-            " your AirshipConfig.plist file";
-        NSString *errorTitle = @"Error";
-        UIAlertView *someError = [[UIAlertView alloc] initWithTitle:errorTitle
-                                                            message:errorMessage
-                                                           delegate:nil
-                                                  cancelButtonTitle:okStr
-                                                  otherButtonTitles:nil];
-        
-        [someError show];
-        [someError release];
+        UALOG(
+                @"Application KEY and/or SECRET not set properly, please"
+                " insert your application key from http://go.urbanairship.com into"
+                " your AirshipConfig.plist file");
+
         return;
         
     }
